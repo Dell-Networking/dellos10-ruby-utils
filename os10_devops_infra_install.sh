@@ -73,6 +73,8 @@ install_puppet_client () {
     chroot /alt apt-get update
     chroot /alt apt-get install puppet-agent
     cp /etc/puppetlabs/puppet/puppet.conf /alt/etc/puppetlabs/puppet/puppet.conf
+    mkdir -p /alt/etc/puppetlabs/puppet/ssl/
+    cp -rf /etc/puppetlabs/puppet/ssl/*  /alt/etc/puppetlabs/puppet/ssl/ 
     bash_str='export PATH=/opt/puppetlabs/bin:$PATH'
     echo "$bash_str" >> /alt/root/.bashrc
     rm -rf /alt/puppet5-release-jessie.deb
