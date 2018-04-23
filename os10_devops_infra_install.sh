@@ -3,6 +3,8 @@
 install_devopsos10_infra () {
   echo "Installing devops OS10 infrastructure"
   if [ "$2" == "remote" ]; then
+    # parse the remote url from the script argument.
+    # The URL should be compatible with the curl url format
     if [[ "$1" == "standby_partition" ]]; then
       url=`echo $@ | sed  -e 's/\<standby_partition remote\> //g'`
     else
@@ -12,41 +14,55 @@ install_devopsos10_infra () {
   else
     cd $3
   fi
+
   if [[ "$1" == "standby_partition" ]]; then
+    # Install the devops os10 infra debian package in the standby partition
     cp os10-devops-ruby-utils-1.0.0.deb /alt
-    #chroot /alt apt-get install gcc make libxml2-dev -y
+
+    # update the kernel, only if it is not done already by chef or puppet
     if [ $RUN_DIRECTLY == true ]; then
       chroot /alt apt-get update
     fi
+
     DEP_MODULE=$DEVOPS_TYPE PARTITION=$1 chroot /alt dpkg -i ./os10-devops-ruby-utils-1.0.0.deb
     chroot /alt apt-get install -f -y
     rm -rf /alt/os10-devops-ruby-utils-1.0.0.deb
     rm -rf /alt/usr/bin/ruby_devops
-    if [ "$DEVOPS_TYPE" == 'chef' ]; then 
+
+    if [ "$DEVOPS_TYPE" == 'chef' ]; then
+      # For chef install libxml-ruby only if the partition is standby and
+      # it is not already installed.
       ln -s /opt/chef/embedded/bin/ruby /alt/usr/bin/ruby_devops
       if ! /alt/opt/chef/embedded/bin/gem query -i -n libxml-ruby > /dev/null 2>&1; then
         /alt/opt/chef/embedded/bin/gem install libxml-ruby
       fi
     else
+      # For Puppet install libxml-ruby only if the partition is standby and
+      # it is not already installed.
       ln -s /opt/puppetlabs/puppet/bin/ruby /alt/usr/bin/ruby_devops
       if ! /alt/opt/puppetlabs/puppet/bin/gem query -i -n libxml-ruby > /dev/null 2>&1; then
         /alt/opt/puppetlabs/puppet/bin/gem install libxml-ruby
       fi
     fi
   else
+    # update the kernel, only if it is not done already by chef or puppet
     if [ $RUN_DIRECTLY == true ]; then
       apt-get update
     fi
-    #apt-get install gcc make libxml2-dev -y
     DEP_MODULE=$DEVOPS_TYPE PARTITION=$1 dpkg -i os10-devops-ruby-utils-1.0.0.deb
     apt-get install -f -y
     rm -rf /usr/bin/ruby_devops
+
     if [ "$DEVOPS_TYPE" == 'chef' ]; then
+      # For chef install libxml-ruby only if the partition is active and
+      # it is not already installed.
       ln -s /opt/chef/embedded/bin/ruby /usr/bin/ruby_devops
       if ! /opt/chef/embedded/bin/gem query -i -n libxml-ruby > /dev/null 2>&1; then
         /opt/chef/embedded/bin/gem install libxml-ruby
       fi
     else
+      # For puppet install libxml-ruby only if the partition is active and
+      # it is not already installed.
       ln -s /opt/puppetlabs/puppet/bin/ruby /usr/bin/ruby_devops
       if ! /opt/puppetlabs/puppet/bin/gem query -i -n libxml-ruby > /dev/null 2>&1; then
         /opt/puppetlabs/puppet/bin/gem install libxml-ruby
@@ -58,6 +74,8 @@ install_devopsos10_infra () {
 install_puppet_client () {
   echo "Installing puppet client"
   if [ "$2" == "remote" ]; then
+    # parse the remote url from the script argument.
+    # The URL should be compatible with the curl url format
     if [[ "$1" == "standby_partition" ]]; then
       url=`echo $@ | sed  -e 's/\<standby_partition remote\> //g'`
     else
@@ -67,12 +85,16 @@ install_puppet_client () {
   else
     cd $3
   fi
+
+  # Install puppet in the box with the necessary configurations
   if [[ "$1" == "standby_partition" ]]; then 
     cp puppet5-release-jessie.deb /alt
     chroot /alt dpkg -i ./puppet5-release-jessie.deb
     chroot /alt apt-get update
     chroot /alt apt-get install puppet-agent
     cp /etc/puppetlabs/puppet/puppet.conf /alt/etc/puppetlabs/puppet/puppet.conf
+    mkdir -p /alt/etc/puppetlabs/puppet/ssl/
+    cp -rf /etc/puppetlabs/puppet/ssl/*  /alt/etc/puppetlabs/puppet/ssl/ 
     bash_str='export PATH=/opt/puppetlabs/bin:$PATH'
     echo "$bash_str" >> /alt/root/.bashrc
     rm -rf /alt/puppet5-release-jessie.deb
@@ -90,6 +112,8 @@ install_puppet_client () {
 install_chef_client () {
   echo "Installing chef client"
   if [ "$2" == "remote" ]; then
+    # parse the remote url from the script argument.
+    # The URL should be compatible with the curl url format
     if [[ "$1" == "standby_partition" ]]; then
       url=`echo $@ | sed  -e 's/\<standby_partition remote\> //g'`
     else
@@ -99,6 +123,8 @@ install_chef_client () {
   else
     cd $3
   fi
+
+  # Install chef in the box with the necessary configurations
   if [[ "$1" == "standby_partition" ]]; then
     cp chef_13.8.5-1_amd64.deb /alt
     chroot /alt dpkg -i ./chef_13.8.5-1_amd64.deb
