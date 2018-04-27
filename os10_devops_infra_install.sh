@@ -33,15 +33,15 @@ install_devopsos10_infra () {
       # For chef install libxml-ruby only if the partition is standby and
       # it is not already installed.
       ln -s /opt/chef/embedded/bin/ruby /alt/usr/bin/ruby_devops
-      if ! /alt/opt/chef/embedded/bin/gem query -i -n libxml-ruby > /dev/null 2>&1; then
-        /alt/opt/chef/embedded/bin/gem install libxml-ruby
+      if ! chroot /alt /opt/chef/embedded/bin/gem query -i -n libxml-ruby > /dev/null 2>&1; then
+        chroot /alt /opt/chef/embedded/bin/gem install libxml-ruby
       fi
     else
       # For Puppet install libxml-ruby only if the partition is standby and
       # it is not already installed.
       ln -s /opt/puppetlabs/puppet/bin/ruby /alt/usr/bin/ruby_devops
-      if ! /alt/opt/puppetlabs/puppet/bin/gem query -i -n libxml-ruby > /dev/null 2>&1; then
-        /alt/opt/puppetlabs/puppet/bin/gem install libxml-ruby
+      if ! chroot /alt /opt/puppetlabs/puppet/bin/gem query -i -n libxml-ruby > /dev/null 2>&1; then
+        chroot /alt /opt/puppetlabs/puppet/bin/gem install libxml-ruby
       fi
     fi
   else
